@@ -18,6 +18,9 @@ func (api *Api) BindRoutes() {
 	api.Router.Use(api.Session.LoadAndSave)
 	// api.Router.Use(csrfMiddleware, api.Session.LoadAndSave)
 
+	api.Router.With(api.AuthMiddleware).Get("/ws/subscribe/{product_id}", api.handleSubcribeUserToAuction)
+
+	// /api/subscribe/10 -> Guitarra ibanez pika
 	api.Router.Route("/api", func(r chi.Router) {
 		r.Get("/csrf-token", api.handleGetCSRFToken)
 		r.Route("/v1", func(r chi.Router) {

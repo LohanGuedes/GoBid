@@ -3,7 +3,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    -- TODO: Remove unique
     user_name VARCHAR(255) NOT NULL,
 
     email TEXT UNIQUE NOT NULL,

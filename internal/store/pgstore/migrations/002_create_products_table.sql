@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT NOT NULL,
 
     base_price FLOAT NOT NULL,
-    auction_start TIMESTAMPTZ NOT NULL,
+    auction_start TIMESTAMPTZ NOT NULL, -- This will be deleted
     auction_end TIMESTAMPTZ NOT NULL,
 
     is_sold BOOLEAN NOT NULL DEFAULT false,
