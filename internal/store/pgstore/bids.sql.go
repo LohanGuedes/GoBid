@@ -9,14 +9,13 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createBid = `-- name: CreateBid :one
 INSERT INTO bids (
     product_id, bidder_id, bid_amount
 ) VALUES ($1, $2, $3)
-RETURNING id, created_at
+RETURNING id, product_id, bidder_id, bid_amount, created_at
 `
 
 type CreateBidParams struct {
@@ -25,15 +24,16 @@ type CreateBidParams struct {
 	BidAmount float64   `json:"bid_amount"`
 }
 
-type CreateBidRow struct {
-	ID        uuid.UUID          `json:"id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-}
-
-func (q *Queries) CreateBid(ctx context.Context, arg CreateBidParams) (CreateBidRow, error) {
+func (q *Queries) CreateBid(ctx context.Context, arg CreateBidParams) (Bid, error) {
 	row := q.db.QueryRow(ctx, createBid, arg.ProductID, arg.BidderID, arg.BidAmount)
-	var i CreateBidRow
-	err := row.Scan(&i.ID, &i.CreatedAt)
+	var i Bid
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.BidderID,
+		&i.BidAmount,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
@@ -67,4 +67,24 @@ func (q *Queries) GetBidsByProductId(ctx context.Context, productID uuid.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const getHighestBidByProductId = `-- name: GetHighestBidByProductId :one
+SELECT id, product_id, bidder_id, bid_amount, created_at FROM bids
+WHERE product_id = $1
+ORDER BY bid_amount DESC
+LIMIT 1
+`
+
+func (q *Queries) GetHighestBidByProductId(ctx context.Context, productID uuid.UUID) (Bid, error) {
+	row := q.db.QueryRow(ctx, getHighestBidByProductId, productID)
+	var i Bid
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.BidderID,
+		&i.BidAmount,
+		&i.CreatedAt,
+	)
+	return i, err
 }

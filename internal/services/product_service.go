@@ -8,20 +8,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rocketseat/go-first-auth/internal/store/pgstore"
 )
 
 var ErrProductNotFound = errors.New("product not found in database")
 
 type ProductService struct {
+	pool *pgxpool.Pool
 	// TODO: make this a interface in order to be more idiomatic
 	db *pgstore.Queries
 }
 
 // This should recieve a Interface that satisfies the types
-func NewProductService(dbtx pgstore.DBTX) ProductService {
+func NewProductService(pool *pgxpool.Pool) ProductService {
 	return ProductService{
-		db: pgstore.New(dbtx),
+		pool: pool,
+		db:   pgstore.New(pool),
 	}
 }
 

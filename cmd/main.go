@@ -6,9 +6,8 @@ package main
 //			- DONE: PasswordHashing
 //			- DONE: Security configs -> CSRF
 //			- DONE: Database setups
-// - WebSockets
-//		- Chat & Maybe a Auction?
-// - Swagger with Swaggo
+//			- TODO: Websocket AuctionStuff
+//			- TODO: Swagger with Swaggo
 
 import (
 	"context"
@@ -69,6 +68,7 @@ func main() {
 		Session:        s,
 		UserService:    services.NewUserService(pool),
 		ProductService: services.NewProductService(pool),
+		BidsService:    services.NewBidsService(pool),
 		Upgrader: websocket.Upgrader{
 			// For tests and development only
 			CheckOrigin: func(r *http.Request) bool { return true },

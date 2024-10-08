@@ -7,18 +7,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rocketseat/go-first-auth/internal/store/pgstore"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	// TODO: make this a interface in order to be more idiomatic
-	db *pgstore.Queries
+	pool *pgxpool.Pool // do not forget to add the pool of connections here.
+	db   *pgstore.Queries
 }
 
-func NewUserService(dbtx pgstore.DBTX) UserService {
+func NewUserService(pool *pgxpool.Pool) UserService {
 	return UserService{
-		db: pgstore.New(dbtx),
+		pool: pool,
+		db:   pgstore.New(pool),
 	}
 }
 
