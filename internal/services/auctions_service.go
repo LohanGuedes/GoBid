@@ -94,7 +94,7 @@ func (r *AuctionRoom) broadCastMessage(message Message) {
 		for id, client := range r.Clients {
 			newBidMessage := Message{Kind: NewHigherBid, Message: "A new bid was placed", BidValue: bid.BidAmount}
 			if id == message.UserID { // Do not send this to the user.
-				return
+				continue
 			}
 			select {
 			case client.Send <- newBidMessage:
