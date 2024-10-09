@@ -52,7 +52,6 @@ type AuctionRoom struct {
 	Register   chan *Client
 	Unregister chan *Client
 
-	// TODO: Make this actually a map[uuid.UUID]*Client
 	Clients map[uuid.UUID]*Client
 
 	ProductService *ProductService
@@ -73,61 +72,78 @@ func NewAuctionRoom(ctx context.Context, id uuid.UUID, productService *ProductSe
 	}
 }
 
+func (r *AuctionRoom) broadCastMessage(message Message) {
+	slog.Info("Message Recieved", "RoomId", r.ID, "message", message, "user_id", message.UserID)
+	switch message.Kind {
+	case PlaceBid:
+		bid, err := r.BidsService.PlaceBid(r.Context, r.ID, message.UserID, message.BidValue)
+		if err != nil {
+			if errors.Is(err, ErrBidIsTooLow) {
+				// Write back to the user that the bid is too low
+				if client, ok := r.Clients[message.UserID]; ok {
+					client.Send <- Message{Kind: FailedToPlaceBid, Message: ErrBidIsTooLow.Error(), UserID: message.UserID}
+					return
+				}
+			}
+		}
+
+		if client, ok := r.Clients[message.UserID]; ok {
+			client.Send <- Message{Kind: SuccessfullyPlacedBid, Message: "Your bid was successfully placed."}
+		}
+
+		for id, client := range r.Clients {
+			newBidMessage := Message{Kind: NewHigherBid, Message: "A new bid was placed", BidValue: bid.BidAmount}
+			if id == message.UserID { // Do not send this to the user.
+				return
+			}
+			select {
+			case client.Send <- newBidMessage:
+			default:
+				close(client.Send)
+				delete(r.Clients, id)
+			}
+		}
+	case InvalidJSON:
+		client, ok := r.Clients[message.UserID]
+		if !ok {
+			slog.Info("Client not found in hashmap")
+			return
+		}
+		client.Send <- message
+	}
+}
+
+func (r *AuctionRoom) unregisterClient(client *Client) {
+	slog.Info("New user disconnected", "userID", client.UserId)
+	delete(r.Clients, client.UserId)
+	close(client.Send)
+}
+
+func (r *AuctionRoom) registerClient(client *Client) {
+	slog.Info("New user connected", "client", client)
+	r.Clients[client.UserId] = client
+}
+
 // Should run in a go routine
 func (r *AuctionRoom) Run() {
+	// Note: is this really neccessary?
+	defer func() {
+		close(r.Broadcast)
+		close(r.Register)
+		close(r.Unregister)
+	}()
+
 	for {
 		select {
 		case client := <-r.Register:
-			slog.Info("New user connected", "client", client)
-			r.Clients[client.UserId] = client
+			r.registerClient(client)
 
 		case client := <-r.Unregister:
-			slog.Info("New user disconnected", "userID", client.UserId)
-			delete(r.Clients, client.UserId)
-			close(client.Send)
+			r.unregisterClient(client)
 
-		// TODO: This case is getting too long... we need to abstract this and make it more easy to read
 		case message := <-r.Broadcast:
-			slog.Info("Message Recieved", "RoomId", r.ID, "message", message) // Can log more stuff if needed
-			switch message.Kind {
-			case PlaceBid:
-				bid, err := r.BidsService.PlaceBid(r.Context, r.ID, message.UserID, message.BidValue)
-				if err != nil {
-					if errors.Is(err, ErrBidIsTooLow) {
-						// Write back to the user that the bid is too low
-						if client, ok := r.Clients[message.UserID]; ok {
-							client.Send <- Message{Kind: FailedToPlaceBid, Message: ErrBidIsTooLow.Error(), UserID: message.UserID}
-							continue
-						}
-					}
-				}
+			r.broadCastMessage(message)
 
-				if client, ok := r.Clients[message.UserID]; ok {
-					client.Send <- Message{Kind: SuccessfullyPlacedBid, Message: "Your bid was successfully placed."}
-				}
-
-				for id, client := range r.Clients {
-					newBidMessage := Message{Kind: NewHigherBid, Message: "A new bid was placed", BidValue: bid.BidAmount}
-					if id == message.UserID { // Do not send this to the user.
-						continue
-					}
-					select {
-					case client.Send <- newBidMessage:
-					default:
-						close(client.Send)
-						delete(r.Clients, id)
-					}
-				}
-			case InvalidJSON:
-				client, ok := r.Clients[message.UserID]
-				if !ok {
-					slog.Info("Client not found in hashmap")
-					continue
-				}
-				client.Send <- message
-			}
-
-		// End the goroutine
 		case <-r.Context.Done():
 			slog.Info("Auction ending", "auctionID", r.ID)
 			for _, client := range r.Clients {
@@ -138,7 +154,7 @@ func (r *AuctionRoom) Run() {
 	}
 }
 
-// Review if this is really needed...
+// TODO: Review if this is really needed...
 const (
 	writeWait = 10 * time.Second
 
@@ -176,7 +192,14 @@ func (c *Client) WriteEventLoop() {
 	for {
 		select {
 		case message, ok := <-c.Send:
-			// If a deadline is meet the underlying c.Conn is corrupt and all writes will return an error.
+			if message.Kind == AuctionFinshed {
+				// NOTE: !!! ADDED LATER !!!
+				close(c.Send)
+				return
+			}
+
+			// NOTE: If a deadline is meet the underlying c.Conn is corrupt and all writes will return an error.
+			// NOTE: Learn why is this needed
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// Make this a valid type...
@@ -188,14 +211,13 @@ func (c *Client) WriteEventLoop() {
 			}
 
 			err := c.Conn.WriteJSON(message)
-			// if err != nil || message.Kind == AuctionFinshed {
 			if err != nil {
 				c.Room.Unregister <- c
-				c.Conn.Close()
 				return
 			}
 
 		case <-ticker.C:
+			// NOTE: Learn why is this needed
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
@@ -212,7 +234,7 @@ func (c *Client) ReadEventLoop() {
 		c.Conn.Close()
 	}()
 
-	// Maybe remove those deadline stuff...
+	// NOTE: Maybe remove those deadline stuff...
 	c.Conn.SetReadLimit(maxMessageSize)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error {

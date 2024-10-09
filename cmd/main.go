@@ -6,7 +6,8 @@ package main
 //			- DONE: PasswordHashing
 //			- DONE: Security configs -> CSRF
 //			- DONE: Database setups
-//			- TODO: Websocket AuctionStuff
+//			- DONE: Websocket AuctionStuff
+//			- TODO: Refactor websocket logic
 //			- TODO: Swagger with Swaggo
 
 import (
