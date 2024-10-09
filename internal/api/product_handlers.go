@@ -39,7 +39,8 @@ func (api *Api) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// We're using context.Background() because if we use r.Context() the context will be cancelled whenever the request is finished, killing our go-routine before any user is able to join in it.
+	// We're using context.Background() because if we use r.Context() the context will be
+	// cancelled whenever the request is finished, killing our go-routine before any user is able to join in it.
 	ctx, _ := context.WithDeadline(context.Background(), data.AuctionEnd)
 
 	newAuctionRoom := services.NewAuctionRoom(ctx, id, &api.ProductService, &api.BidsService)

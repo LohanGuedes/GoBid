@@ -15,7 +15,6 @@ type MessageKind int
 
 const (
 	// Responses
-	// NOTE: Maybe this all should be errors....
 	AuctionFinshed MessageKind = iota
 	InvalidJSON
 	FailedToPlaceBid
@@ -126,7 +125,6 @@ func (r *AuctionRoom) registerClient(client *Client) {
 
 // Should run in a go routine
 func (r *AuctionRoom) Run() {
-	// Note: is this really neccessary?
 	defer func() {
 		close(r.Broadcast)
 		close(r.Register)
@@ -193,13 +191,12 @@ func (c *Client) WriteEventLoop() {
 		select {
 		case message, ok := <-c.Send:
 			if message.Kind == AuctionFinshed {
-				// NOTE: !!! ADDED LATER !!!
 				close(c.Send)
 				return
 			}
 
 			// NOTE: If a deadline is meet the underlying c.Conn is corrupt and all writes will return an error.
-			// NOTE: Learn why is this needed
+			// NOTE: Should I really add this to the videos???
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// Make this a valid type...
@@ -217,7 +214,7 @@ func (c *Client) WriteEventLoop() {
 			}
 
 		case <-ticker.C:
-			// NOTE: Learn why is this needed
+			// NOTE: Should I really add this to the videos???
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

@@ -7,7 +7,7 @@ package main
 //			- DONE: Security configs -> CSRF
 //			- DONE: Database setups
 //			- DONE: Websocket AuctionStuff
-//			- TODO: Refactor websocket logic
+//			- DONE: Refactor websocket logic
 //			- TODO: Swagger with Swaggo
 
 import (
@@ -29,9 +29,6 @@ import (
 	"github.com/lohanguedes/gobid/internal/services"
 )
 
-// This function is special, you can creaty any ammount of them inside a
-// package. and it will be ran when the package is called the first
-// time, only one time.
 func init() {
 	gob.Register(uuid.UUID{})
 }
@@ -71,7 +68,7 @@ func main() {
 		ProductService: services.NewProductService(pool),
 		BidsService:    services.NewBidsService(pool),
 		Upgrader: websocket.Upgrader{
-			// For tests and development only
+			// For tests and development only, otherwise make a actual function here...
 			CheckOrigin: func(r *http.Request) bool { return true },
 		},
 		AuctionLobby: services.AuctionLobby{

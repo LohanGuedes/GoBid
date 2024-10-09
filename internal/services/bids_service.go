@@ -74,15 +74,3 @@ func (s BidsService) PlaceBid(ctx context.Context, product_id, bidder_id uuid.UU
 
 	return highestBid, err
 }
-
-/*
-| Scenario									| Use Transaction? | Why?                                                   |
-|-------------------------------------------|------------------|--------------------------------------------------------|
-| User registration (single row insertion)	| ❌ No            | Simple insertion; no dependent actions.                |
-| Updating user profile info				| ❌ No            | Only updates a single row.                             |
-| Adding a new order and updating inventory	| ✔️ Yes            | Consistency needed between order and inventory.        |
-| Fetching list of products for display		| ❌ No            | Read-only operation.                                   |
-| Placing a bid in an auction				| ✔️ Yes            | Needs to prevent race conditions and ensure atomicity. |
-| Logging an API request for analytics		| ❌ No            | A single insert action; no dependency.                 |
-|-------------------------------------------|------------------|--------------------------------------------------------|
-*/
