@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rocketseat/go-first-auth/internal/store/pgstore"
-	"github.com/rocketseat/go-first-auth/internal/usecase/user"
+	"github.com/lohanguedes/gobid/internal/store/pgstore"
+	"github.com/lohanguedes/gobid/internal/usecase/user"
 )
 
 func (api *Api) handleSignUpUser(w http.ResponseWriter, r *http.Request) {

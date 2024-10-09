@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/rocketseat/go-first-auth/internal/services"
+	"github.com/lohanguedes/gobid/internal/services"
 )
 
 // ws/subscribe/{product_id}

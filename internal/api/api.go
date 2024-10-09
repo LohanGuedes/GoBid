@@ -4,7 +4,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	"github.com/rocketseat/go-first-auth/internal/services"
+	"github.com/lohanguedes/gobid/internal/services"
 )
 
 // This file is only used for documentind the api constraints. and injecting dependencies.

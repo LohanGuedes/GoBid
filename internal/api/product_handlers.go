@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/rocketseat/go-first-auth/internal/services"
-	"github.com/rocketseat/go-first-auth/internal/usecase/product"
+	"github.com/lohanguedes/gobid/internal/services"
+	"github.com/lohanguedes/gobid/internal/usecase/product"
 )
 
 func (api *Api) handleCreateProduct(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rocketseat/go-first-auth/internal/validator"
+	"github.com/lohanguedes/gobid/internal/validator"
 )
 
 func encodeJson[T any](w http.ResponseWriter, r *http.Request, statusCode int, data T) error {

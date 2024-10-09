@@ -24,8 +24,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/rocketseat/go-first-auth/internal/api"
-	"github.com/rocketseat/go-first-auth/internal/services"
+	"github.com/lohanguedes/gobid/internal/api"
+	"github.com/lohanguedes/gobid/internal/services"
 )
 
 // This function is special, you can creaty any ammount of them inside a

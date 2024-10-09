@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/rocketseat/go-first-auth/internal/validator"
+	"github.com/lohanguedes/gobid/internal/validator"
 )
 
 type LoginUserReq struct {

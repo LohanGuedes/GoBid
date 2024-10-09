@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rocketseat/go-first-auth/internal/validator"
+	"github.com/lohanguedes/gobid/internal/validator"
 )
 
 type CreateProductReq struct {

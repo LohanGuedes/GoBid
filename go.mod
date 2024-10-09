@@ -1,4 +1,4 @@
-module github.com/rocketseat/go-first-auth
+module github.com/lohanguedes/gobid
 
 go 1.22.2
 
